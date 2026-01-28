@@ -1,24 +1,23 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { SplashScreen, Stack } from "expo-router";
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+//! You can still use the fonts without this expo font hook since this just makes loading fonts safer and cleaner.
+import { useFonts } from "expo-font";
+import { useEffect } from "react";
+import "./global.css";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const [fontsLoaded, error] = useFonts({
+    "QuickSand-Bold": require("../assets/fonts/Quicksand-Bold.ttf"),
+    "QuickSand-Medium": require("../assets/fonts/Quicksand-Bold.ttf"),
+    "QuickSand-Regular": require("../assets/fonts/Quicksand-Bold.ttf"),
+    "QuickSand-SemiBold": require("../assets/fonts/Quicksand-Bold.ttf"),
+    "QuickSand-Light": require("../assets/fonts/Quicksand-Bold.ttf"),
+  });
 
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+  useEffect(() => {
+    if (error) throw error;
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded, error]);
+
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
