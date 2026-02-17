@@ -1,3 +1,9 @@
+//! You might be wondering why inside the `lib` folder there is a file `data.ts` with constants dummy data in it.
+//! Why is it not inside this `constants` folder? — it is because this file represents backend/domain data, not UI constants.
+//
+//! In short:
+//! - `constants/` → UI assets & static presentation data
+//! - `lib/data.ts` → mock/backend data used for seeding or simulating API responses
 import arrowBack from "@/assets/icons/arrow-back.png";
 import arrowDown from "@/assets/icons/arrow-down.png";
 import arrowRight from "@/assets/icons/arrow-right.png";

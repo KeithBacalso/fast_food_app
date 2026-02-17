@@ -1,10 +1,15 @@
-import { CreateUserParams, SignInParams } from "@/type";
+import {
+  CreateUserParams,
+  GetMenuParams,
+  SignInParams,
+} from "@/type";
 import {
   Account,
   Avatars,
   Client,
   ID,
   Query,
+  Storage,
   TablesDB,
 } from "react-native-appwrite";
 
@@ -16,7 +21,12 @@ export const appwriteConfig = {
   projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID!,
   platform: "com.jsm.foodordering",
   databaseId: "697acff900042750b83a",
+  bucketId: "6984061000367284993a",
   userTableId: "697ae97100373990a265",
+  categoriesTableId: "6981d1b00039537e0518",
+  menuTableId: "6982d59e0012df481842",
+  customizationsTableId: "6984002e0023bec393f9",
+  menuCustomizationsTableId: "698403e700362c45e107",
 };
 
 // Initialize the Appwrite client first.
@@ -37,7 +47,12 @@ export const account = new Account(client);
 
 // Initialize the Tables Database service using the client.
 // This service allows you to interact with your Appwrite database tables and rows.
-export const tablesDB = new TablesDB(client);
+export const databases = new TablesDB(client);
+
+// Initialize the Storage service using the client.
+// This service allows you to upload, retrieve, and manage files such as images,
+// audio recordings, documents, or any other assets in your Appwrite storage buckets.
+export const storage = new Storage(client);
 
 // Initialize the Avatars service using the client.
 // Avatars provides prebuilt avatar images for users (e.g., initials, icons, or custom images).
@@ -61,7 +76,7 @@ export const createUser = async ({
 
     const avatarUrl = avatars.getInitialsURL(name);
 
-    return await tablesDB.createRow({
+    return await databases.createRow({
       databaseId: appwriteConfig.databaseId,
       tableId: appwriteConfig.userTableId,
       rowId: ID.unique(),
@@ -79,28 +94,63 @@ export const createUser = async ({
 
 export const signIn = async ({ email, password }: SignInParams) => {
   try {
-    const session = await account.createEmailPasswordSession({ email,  password})
+    const session = await account.createEmailPasswordSession({
+      email,
+      password,
+    });
   } catch (e) {
-    throw new Error(e as string)
+    throw new Error(e as string);
   }
 };
 
 export const getCurrentUser = async () => {
   try {
     const currentAccount = await account.get();
-    if(!currentAccount) throw Error;
+    if (!currentAccount) throw Error;
 
-    const currentUser = await tablesDB.listRows({
+    const currentUser = await databases.listRows({
       databaseId: appwriteConfig.databaseId,
       tableId: appwriteConfig.userTableId,
-      queries: [Query.equal('accountId', currentAccount.$id)]
-    })
+      queries: [Query.equal("accountId", currentAccount.$id)],
+    });
 
-    if(!currentUser) throw Error;
+    if (!currentUser) throw Error;
 
     return currentUser.rows[0];
   } catch (e) {
     console.log(e);
+    throw new Error(e as string);
+  }
+};
+
+export const getMenu = async ({ category, query }: GetMenuParams) => {
+  try {
+    const queries: string[] = [];
+
+    if (category) queries.push(Query.equal("categories", category));
+    if (query) queries.push(Query.search("name", query));
+
+    const menus = await databases.listRows({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.menuTableId,
+      queries: queries,
+    });
+
+    return menus.rows;
+  } catch (e) {
+    throw new Error(e as string);
+  }
+};
+
+export const getCategories = async () => {
+  try {
+    const categories = await databases.listRows({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.categoriesTableId,
+    });
+
+    return categories.rows;
+  } catch (e) {
     throw new Error(e as string);
   }
 }
